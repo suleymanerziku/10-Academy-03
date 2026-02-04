@@ -1,0 +1,9 @@
+{
+	"servers": {
+		"Agent-Chimra": {
+			"url": "https://mcppulse.10academy.org/proxy",
+			"type": "http"
+		}
+	},
+	"inputs": []
+}
