@@ -1,4 +1,4 @@
-# Architecture Strategy
+# Domain Architecture Strategy
 
 ## Purpose
 
@@ -8,8 +8,7 @@ This is a **pre-code artifact**. No implementation decisions should contradict t
 
 
 
-## 1. Architectural Goals (Derived from SRS)
-
+## 1. Architectural Goals
 From the Chimera SRS, the architecture must:
 
 1. Support **thousands of autonomous influencer agents** concurrently
@@ -38,7 +37,7 @@ These goals eliminate monolithic-agent and ad-hoc prompt architectures.
 
 This pattern directly aligns with:
 
-* FastRender Swarm Architecture (SRS §3.1)
+* FastRender Swarm Architecture
 * Management-by-exception philosophy
 * Real-world constraints of LLM unreliability
 
@@ -68,15 +67,7 @@ This pattern directly aligns with:
 
 All external interactions flow **only through MCP servers**.
 
-```mermaid
-flowchart TD
-    Orchestrator --> Planner
-    Planner -->|Tasks| WorkerPool
-    WorkerPool -->|Results| Judge
-    Judge -->|Commit / Reject| Orchestrator
-    Orchestrator -->|Policy| MCPServers
-    MCPServers -->|Data / Actions| ExternalWorld
-```
+![alt text](image.png)
 
 
 
@@ -92,15 +83,7 @@ Humans do **not** approve everything. They intervene only when:
 
 ### 4.2 HITL Flow
 
-```mermaid
-flowchart LR
-    Worker --> Judge
-    Judge -->|High Confidence| AutoApprove
-    Judge -->|Medium Confidence| HITLQueue
-    Judge -->|Low Confidence| Retry
-    HITLQueue --> HumanReviewer
-    HumanReviewer --> ApproveOrReject
-```
+![alt text](image-1.png)
 
 This preserves velocity while maintaining accountability.
 
@@ -124,6 +107,86 @@ This preserves velocity while maintaining accountability.
 * Financial data demands immutability
 
 Separation enforces correctness.
+
+
+## Regarding storing video metadata
+Chimera agents generate and process **large volumes of video-related metadata**, including:
+
+- Video IDs, platforms, formats
+- Generation timestamps
+- Agent ID / persona ID
+- Content attributes (hashtags, captions, topics)
+- Engagement metrics (views, likes, shares)
+- Processing status (draft, published, archived)
+- Cost and resource attribution
+
+Characteristics:
+- **Write-heavy** during content bursts
+- **Append-first** lifecycle
+- **Query-heavy** for analytics, dashboards, and governance
+- Requires **auditability and traceability**
+
+
+## Option A: NoSQL (Document / Key-Value Stores)
+
+### Strengths
+- High write throughput
+- Flexible schemas
+- Easy horizontal scaling
+
+### Weaknesses (Critical for Chimera)
+- Weak or eventual consistency
+- Poor support for:
+  - Cross-agent joins
+  - Temporal analytics
+  - Auditing & compliance queries
+- Schema drift risk (dangerous for agent-built systems)
+- Harder to enforce invariants (e.g., one wallet ↔ many videos)
+
+### Assessment
+NoSQL is optimized for **unstructured content blobs**, not governed agent output.
+
+**Risk:** Agents may silently diverge data structures over time.
+
+
+
+## Option B: SQL (Relational Database)
+
+### Strengths
+- Strong consistency guarantees
+- Explicit schemas = executable contracts
+- Excellent support for:
+  - Time-series queries
+  - Aggregations
+  - Auditing and rollback
+- Natural fit for:
+  - Governance
+  - Budget attribution
+  - HITL review trails
+
+### Performance Considerations
+Modern SQL databases (PostgreSQL) support:
+- High insert rates (partitioning, batching)
+- JSONB for semi-structured fields
+- Time-based partitioning for scale
+- Read replicas for analytics
+
+### Assessment
+SQL aligns with **Spec-Driven Development** and **agent governance**.
+
+
+## Decision: Use SQL
+
+### Rationale
+| Requirement | SQL Fit |
+|-----------|--------|
+| High-velocity writes | Partitioned inserts |
+| Agent traceability | Foreign keys + constraints |
+| Governance & audits | ACID + history tables |
+| Analytics | Native aggregations |
+| Schema enforcement | Prevents agent drift |
+
+We intentionally **trade schema rigidity for correctness**.
 
 
 
