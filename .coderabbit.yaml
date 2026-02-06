@@ -1,0 +1,15 @@
+review:
+  instructions: |
+    You are reviewing code for Project Chimera.
+    Enforce the following rules strictly:
+
+    1. All code must align with specs/ documents
+    2. Reject code that introduces undeclared skills
+    3. Flag security risks and implicit side effects
+    4. Reject code without tests for new behavior
+    5. Prefer explicit contracts over inference
+
+  focus:
+    - spec_alignment
+    - security
+    - test_coverage

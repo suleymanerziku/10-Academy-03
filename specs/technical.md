@@ -254,6 +254,26 @@ All external interactions are mediated through MCP (Model Context Protocol) serv
   }
 }
 ```
+
+### OpenClaw Status Publishing (Optional)
+**Publish Availability**
+`GET /openclaw/status`
+
+**Purpose**
+- One-way publication of Chimera status
+
+**Response**
+```
+{
+  "system": "chimera",
+  "status": "active",
+  "capabilities": ["trend_analysis", "metadata_generation"]
+}
+```
+
+---
+
+
 - Data Model: Video Metadata 
 
 Database Type: SQL (PostgreSQL)
@@ -278,7 +298,7 @@ Rules:
 
 ## Implementation Details
 
-- Language: Python 3.12
+- Language: Python 3.11
 - Dependency Management: uv
 - Validation: Judge agents + test suites
 - Integration: MCP servers only
