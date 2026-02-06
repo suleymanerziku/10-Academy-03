@@ -1,0 +1,7 @@
+[project]
+name = "project-Chimera"
+version = "0.1.0"
+description = "Autonomous Influencer Network – Chimera"
+readme = "README.md"
+requires-python = ">=3.11"
+dependencies = []
